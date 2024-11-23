@@ -1,4 +1,3 @@
-# database.py
 import mysql.connector
 from mysql.connector import Error
 
@@ -18,23 +17,25 @@ class Database:
             print(f"Error connecting to database: {e}")
             return None
         
+    def execute_query(self, query, params):
+        # This method executes a query with the provided parameters and returns the result
+        try:
+            conn = self.get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute(query, params)
+            result = cursor.fetchall()  # Fetch all rows from the query result
+            cursor.close()
+            conn.close()
+            return result
+        except Error as e:
+            print(f"Error executing query: {e}")
+            return None
+        
+    # Modify the verify_login method to return both role and user_id
     def verify_login(self, username, password):
-        conn = self.get_db_connection()
-        if conn:
-            try:
-                cursor = conn.cursor()
-                query = "SELECT role, password FROM users WHERE username=%s"
-                cursor.execute(query, (username,))
-                result = cursor.fetchone()
-
-                if result and password == result[1]:  # Plain-text password comparison
-                    return result[0]  # Return role
-                else:
-                    return None
-            finally:
-                conn.close()
+        query = "SELECT id, role FROM users WHERE username = %s AND password = %s"
+        result = self.execute_query(query, (username, password))
+        if result:
+            user_id, role = result[0]  # Assuming result[0] contains the row (id, role)
+            return user_id, role
         return None
-
-   
-
-  

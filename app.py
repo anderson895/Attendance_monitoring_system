@@ -7,7 +7,6 @@ from student_landing import StudentLanding
 # Create an instance of the Database class
 db_instance = Database()
 
-# Login and role-based redirection
 def login():
     username = username_entry.get()
     password = password_entry.get()
@@ -17,19 +16,23 @@ def login():
         return
     
     # Verify login credentials
-    role = db_instance.verify_login(username, password)
-    if role:
+    user_info = db_instance.verify_login(username, password)
+    if user_info:
+        user_id, role = user_info
         messagebox.showinfo("Success", f"Welcome {role} {username}!")
+        
         try:
             connection = db_instance.get_db_connection()
             if role == "Instructor":
-                # Show instructor dashboard
+                # Create InstructorLanding instance and pass user_id, username
                 instructor_landing = InstructorLanding(connection)
-                instructor_landing.show_instructor_dashboard(username)
+                instructor_landing.show_instructor_dashboard(user_id, username)
+                app.withdraw()  # Hide the login window
             elif role == "Student":
-                # Show student dashboard
+                # Create StudentLanding instance and pass user_id, username
                 student_landing = StudentLanding(connection)
-                student_landing.show_student_dashboard(username)
+                student_landing.show_student_dashboard(user_id, username)
+                app.withdraw()  # Hide the login window
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {e}")
     else:
