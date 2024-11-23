@@ -53,9 +53,9 @@ class StudentLanding:
             return None
 
     def show_student_dashboard(self, user_id, username):
-        # Fetch student data
+    # Fetch student data
         student_data = self.fetch_student_DailyAttendance(user_id)
-        
+
         if student_data is None:
             print("No student data found")
             messagebox.showerror("Error", "Student data not found or error occurred.")
@@ -107,12 +107,20 @@ class StudentLanding:
             Label(student_form, text=full_name, font=("Arial", 10)).grid(row=3, column=1, padx=10, pady=5, sticky="ew")
             Label(student_form, text=attendance_status, font=("Arial", 10)).grid(row=3, column=2, padx=10, pady=5, sticky="ew")
 
-            # Create "Absent" and "Present" buttons under the Actions column
-            absent_button = Button(student_form, text="Absent", font=("Arial", 10), command=lambda: self.mark_absent(user_id))
-            absent_button.grid(row=3, column=3, padx=5, pady=5, sticky="ew")
+            # If attendance exists (i.e., attendance_status is 'Exist'), hide the buttons
+            if attendance_status == 'Exist':
+                absent_button = Button(student_form, text="Absent", font=("Arial", 10), state="disabled")
+                absent_button.grid(row=3, column=3, padx=5, pady=5, sticky="ew")
 
-            present_button = Button(student_form, text="Present", font=("Arial", 10), command=lambda: self.mark_present(user_id))
-            present_button.grid(row=3, column=4, padx=5, pady=5, sticky="ew")
+                present_button = Button(student_form, text="Present", font=("Arial", 10), state="disabled")
+                present_button.grid(row=3, column=4, padx=5, pady=5, sticky="ew")
+            else:
+                # Otherwise, show the buttons
+                absent_button = Button(student_form, text="Absent", font=("Arial", 10), command=lambda: self.mark_absent(user_id))
+                absent_button.grid(row=3, column=3, padx=5, pady=5, sticky="ew")
+
+                present_button = Button(student_form, text="Present", font=("Arial", 10), command=lambda: self.mark_present(user_id))
+                present_button.grid(row=3, column=4, padx=5, pady=5, sticky="ew")
 
         if not student_data:
             # If no data found or error occurred
@@ -124,6 +132,7 @@ class StudentLanding:
         
         # Placeholder for additional features (centered content)
         Label(student_form, text="Actions coming soon!", font=("Arial", 10)).grid(row=4, column=0, columnspan=4, pady=20, sticky="n")
+
 
     def mark_present(self, student_id):
         """Mark the student as present in the attendance table."""
