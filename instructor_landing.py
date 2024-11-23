@@ -1,10 +1,12 @@
-from tkinter import Toplevel, Label, Button, messagebox
+# instructor_landing.py
+from tkinter import messagebox
 
 class InstructorLanding:
-    def __init__(self, connection):
-        """Initialize with a database connection."""
+    def __init__(self, connection, main_app):
+        """Initialize the InstructorLanding class with a database connection."""
         self.connection = connection
         self.cursor = connection.cursor()
+        self.main_app = main_app  # Store the reference to the main login app
 
     def close(self):
         """Close the database cursor and connection."""
@@ -12,6 +14,15 @@ class InstructorLanding:
             self.cursor.close()
         if self.connection:
             self.connection.close()
+
+    # other methods...
+
+    def logout(self, instructor_form):
+        """Handle the logout functionality."""
+        instructor_form.destroy()  # Close the current form
+        self.main_app.deiconify()  # Show the main login window again
+        messagebox.showinfo("Logged Out", "You have been logged out successfully.")
+
 
     def fetch_instructor_data(self, username):
         """Fetch instructor-specific data from the database."""

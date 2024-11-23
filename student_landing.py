@@ -1,18 +1,36 @@
 from tkinter import Toplevel, Label, Button, messagebox
 import datetime
 
+# student_landing.py
+from tkinter import messagebox
+import datetime
+
 class StudentLanding:
-    def __init__(self, connection):
+    def __init__(self, connection, main_app):
         """Initialize the StudentLanding class with a database connection."""
         self.connection = connection
         self.cursor = connection.cursor()
+        self.main_app = main_app  # Store the reference to the main login app
 
-    def close(self):
-        """Close the database cursor and connection."""
-        if self.cursor:
-            self.cursor.close()
-        if self.connection:
-            self.connection.close()
+    def logout(self, student_form):
+        """Handle the logout functionality."""
+        # Close the current student form (the dashboard)
+        student_form.destroy()
+
+        # Show the main login window again
+        if self.main_app:
+            self.main_app.deiconify()  # Make the main login window visible again
+            self.main_app.lift()  # Bring the login window to the front
+
+        # Optionally reset any session variables or states
+        print("Logout successful - Login form should now be visible.")
+
+        # Display a message box to confirm logout
+        messagebox.showinfo("Logged Out", "You have been logged out successfully.")
+
+
+
+
 
     def fetch_student_DailyAttendance(self, user_id):
         """Fetch student-specific data from the database."""
@@ -80,7 +98,8 @@ class StudentLanding:
         Button(header_frame, text="Dashboard", font=("Arial", 12), command=lambda: self.show_student_dashboard(user_id, username)).grid(row=0, column=0, padx=20)
         Button(header_frame, text="Settings", font=("Arial", 12), command=self.show_settings).grid(row=0, column=1, padx=20)
         Button(header_frame, text="Help", font=("Arial", 12), command=self.show_help).grid(row=0, column=2, padx=20)
-        Button(header_frame, text="Logout", font=("Arial", 12), command=student_form.destroy).grid(row=0, column=3, padx=20)
+        Button(header_frame, text="Logout", font=("Arial", 12), command=lambda: self.logout(student_form)).grid(row=0, column=3, padx=20)
+
 
         # Display student's full name in the welcome label
         full_name = ""
@@ -150,6 +169,10 @@ class StudentLanding:
 
             # Notify the user that attendance has been marked
             messagebox.showinfo("Success", "Attendance marked as Present.")
+
+            # Reload the student dashboard to reflect updated attendance
+            self.show_student_dashboard(student_id, self.main_app.username)  # Assuming `self.main_app.username` is stored after login
+
         except Exception as e:
             # Handle errors, if any
             messagebox.showerror("Error", f"An error occurred: {e}")
@@ -170,9 +193,14 @@ class StudentLanding:
 
             # Notify the user that attendance has been marked
             messagebox.showinfo("Success", "Attendance marked as Absent.")
+
+            # Reload the student dashboard to reflect updated attendance
+            self.show_student_dashboard(student_id, self.main_app.username)  # Assuming `self.main_app.username` is stored after login
+
         except Exception as e:
             # Handle errors, if any
             messagebox.showerror("Error", f"An error occurred: {e}")
+
 
     def show_settings(self):
         """Display settings page (placeholder function)."""

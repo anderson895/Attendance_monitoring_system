@@ -1,3 +1,4 @@
+# database.py
 import mysql.connector
 from mysql.connector import Error
 
@@ -6,9 +7,9 @@ class Database:
         try:
             conn = mysql.connector.connect(
                 host='localhost',
-                database='login_system',
-                user='root',
-                password=''  # Replace with your actual DB password
+                database='login_system',  # Replace with your actual database name
+                user='root',              # Replace with your actual DB username
+                password=''              # Replace with your actual DB password
             )
             if conn.is_connected():
                 print("Database connection successful.")
@@ -39,3 +40,6 @@ class Database:
             user_id, role = result[0]  # Assuming result[0] contains the row (id, role)
             return user_id, role
         return None
+
+# Create a global instance of the Database class
+db_instance = Database()

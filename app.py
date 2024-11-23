@@ -1,42 +1,10 @@
+# app.py
 from tkinter import *
 from tkinter import messagebox
-from database import Database
-from instructor_landing import InstructorLanding
-from student_landing import StudentLanding
-
-# Create an instance of the Database class
-db_instance = Database()
-
-def login():
-    username = username_entry.get()
-    password = password_entry.get()
-    
-    if not username or not password:
-        messagebox.showwarning("Input Error", "Please fill in all fields.")
-        return
-    
-    # Verify login credentials
-    user_info = db_instance.verify_login(username, password)
-    if user_info:
-        user_id, role = user_info
-        messagebox.showinfo("Success", f"Welcome {role} {username}!")
-        
-        try:
-            connection = db_instance.get_db_connection()
-            if role == "Instructor":
-                # Create InstructorLanding instance and pass user_id, username
-                instructor_landing = InstructorLanding(connection)
-                instructor_landing.show_instructor_dashboard(user_id, username)
-                app.withdraw()  # Hide the login window
-            elif role == "Student":
-                # Create StudentLanding instance and pass user_id, username
-                student_landing = StudentLanding(connection)
-                student_landing.show_student_dashboard(user_id, username)
-                app.withdraw()  # Hide the login window
-        except Exception as e:
-            messagebox.showerror("Error", f"An error occurred: {e}")
-    else:
-        messagebox.showerror("Login Failed", "Invalid username or password.")
+from database import db_instance  # Import the global db_instance from database.py
+from instructor_landing import InstructorLanding  # Assuming you have this class defined
+from student_landing import StudentLanding  # Assuming you have this class defined
+from login import login  # Import the login function
 
 # GUI Setup for Login
 app = Tk()
@@ -54,7 +22,7 @@ password_entry = Entry(app, show="*")
 password_entry.pack(pady=5)
 
 # Login Button
-Button(app, text="Login", command=login).pack(pady=10)
+Button(app, text="Login", command=lambda: login(app, username_entry, password_entry)).pack(pady=10)
 
 # Run the main application loop
 app.mainloop()
