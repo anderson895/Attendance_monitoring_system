@@ -1,0 +1,6 @@
+A system designed to track attendance records of the students. This system ensures accurate monitoring of attendance, helping instructors maintain up-to-date records. 
+1.Real-Time Attendance Monitoring: Allow instructors to monitor attendance live, with a dashboard displaying the current status of students (e.g., present, late, absent).
+2.Manual Check-In and Check-Out Interface: Create a simple interface where instructors can manually mark each student as "present," "late," or "absent." This can be a grid format with a list of student names and checkboxes or dropdown menus for each status.
+3.Profile Options: Enable users to select either a student or instructor profile type.
+4.Leave and Excuse Management: Allow students to submit absence requests or provide explanations for absences, which instructors can review and approve.
+5.Instructor Controls: Enable administrators to add, remove, or edit student records, set permissions, and override attendance records if needed.
