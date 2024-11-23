@@ -5,7 +5,6 @@ import pytz
 # Correct usage of datetime
 today_date = datetime.now(pytz.timezone('Asia/Manila')).strftime('%Y-%m-%d')
 
-
 class StudentLanding:
     def __init__(self, connection, main_app):
         """Initialize the StudentLanding class with a database connection."""
@@ -33,8 +32,6 @@ class StudentLanding:
         """Fetch student-specific data from the database."""
         try:
             # Query to fetch student data based on user_id
-          
-            
             query = """
                 SELECT u.id, u.fname, u.mname, u.lname, u.username, u.role, a.a_student_id, a.a_status, a.a_date
                 FROM users u
@@ -111,13 +108,12 @@ class StudentLanding:
         # Display student data or error message
         Label(student_form, text="Student ID", font=("Arial", 12, "bold")).grid(row=2, column=0, padx=10, pady=5, sticky="ew")
         Label(student_form, text="Full Name", font=("Arial", 12, "bold")).grid(row=2, column=1, padx=10, pady=5, sticky="ew")
-        Label(student_form, text="Attendance Status", font=("Arial", 12, "bold")).grid(row=2, column=2, padx=10, pady=5, sticky="ew")
+     
         Label(student_form, text="Actions", font=("Arial", 12, "bold")).grid(row=2, column=3, padx=10, pady=5, sticky="ew")
 
         # Student data row (centered content)
         Label(student_form, text=f"{user_id}", font=("Arial", 10)).grid(row=3, column=0, padx=10, pady=5, sticky="ew")
         Label(student_form, text=full_name, font=("Arial", 10)).grid(row=3, column=1, padx=10, pady=5, sticky="ew")
-        Label(student_form, text=attendance_status, font=("Arial", 10)).grid(row=3, column=2, padx=10, pady=5, sticky="ew")
 
         # Attendance buttons handling
         if attendance_status == 'Exist':
@@ -129,45 +125,42 @@ class StudentLanding:
             present_button.grid(row=3, column=4, padx=5, pady=5, sticky="ew")
         else:
             # Enable buttons if no attendance
-            absent_button = Button(student_form, text="Absent", font=("Arial", 10), command=lambda: self.mark_absent(user_id))
+            absent_button = Button(student_form, text="Absent", font=("Arial", 10), command=lambda: self.mark_absent(user_id, username, student_form))
             absent_button.grid(row=3, column=3, padx=5, pady=5, sticky="ew")
 
-            present_button = Button(student_form, text="Present", font=("Arial", 10), command=lambda: self.mark_present(user_id))
+            present_button = Button(student_form, text="Present", font=("Arial", 10), command=lambda: self.mark_present(user_id, username, student_form))
             present_button.grid(row=3, column=4, padx=5, pady=5, sticky="ew")
 
-
-    def mark_present(self, student_id):
+    def mark_present(self, student_id, username, student_form):
         """Mark the student as present in the attendance table."""
         try:
-            current_date = datetime.date.today()
-
             query = """
             INSERT INTO attendance (a_student_id, a_status, a_date) 
             VALUES (%s, %s, %s)
             """
-            self.cursor.execute(query, (student_id, 'Present', current_date))
+            self.cursor.execute(query, (student_id, 'Present', today_date))
             self.connection.commit()
 
             messagebox.showinfo("Success", "Attendance marked as Present.")
-            self.show_student_dashboard(student_id, self.main_app.username)
+            student_form.destroy()
+            self.show_student_dashboard(student_id, username)
 
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {e}")
 
-    def mark_absent(self, student_id):
+    def mark_absent(self, student_id, username, student_form):
         """Mark the student as absent in the attendance table."""
         try:
-            current_date = datetime.date.today()
-
             query = """
             INSERT INTO attendance (a_student_id, a_status, a_date) 
             VALUES (%s, %s, %s)
             """
-            self.cursor.execute(query, (student_id, 'Absent', current_date))
+            self.cursor.execute(query, (student_id, 'Absent', today_date))
             self.connection.commit()
 
             messagebox.showinfo("Success", "Attendance marked as Absent.")
-            self.show_student_dashboard(student_id, self.main_app.username)
+            student_form.destroy()
+            self.show_student_dashboard(student_id, username)
 
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {e}")
