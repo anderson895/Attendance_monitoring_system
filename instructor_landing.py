@@ -3,7 +3,6 @@ from tkinter import Toplevel, Label, Button, Frame, messagebox, Canvas, Scrollba
 from datetime import datetime
 import pytz
 
-# Correct usage of datetime
 today_date = datetime.now(pytz.timezone('Asia/Manila')).strftime('%Y-%m-%d')
 
 class InstructorLanding:
@@ -12,6 +11,7 @@ class InstructorLanding:
         self.connection = connection
         self.cursor = connection.cursor()
         self.main_app = main_app
+        self.attendance_data = []  # This will store the current attendance data for real-time updates
 
     def close(self):
         """Safely close the database cursor and connection."""
@@ -40,18 +40,19 @@ class InstructorLanding:
             return None
 
     def fetch_student_daily_attendance(self):
-        """Fetch student-specific data from the database."""
+        """Fetch student-specific data with attendance records for today."""
         try:
             query = """
-                SELECT u.id, u.fname, u.mname, u.lname, u.username,a.a_reason,a.a_status, a.a_approval,  a.a_date, u.role, a.a_student_id
+                SELECT u.id, u.fname, u.mname, u.lname, u.username, a.a_reason, a.a_status, a.a_approval, a.a_date, u.role, a.a_student_id
                 FROM users u
-                LEFT JOIN attendance a ON a.a_student_id = u.id AND DATE(a.a_date) = %s
+                INNER JOIN attendance a ON a.a_student_id = u.id AND DATE(a.a_date) = %s
             """
             self.cursor.execute(query, (today_date,))
             return self.cursor.fetchall()
         except Exception as e:
             logging.error(f"Error fetching student data: {e}")
             return None
+
 
     def create_header(self, parent, logout_action):
         """Create a header navigation bar with menu buttons."""
@@ -88,9 +89,9 @@ class InstructorLanding:
         Label(instructor_form, text=f"Welcome, Instructor {username}!", font=("Arial", 20)).pack(pady=20)
 
         # Fetch daily attendance data for students
-        attendance_data = self.fetch_student_daily_attendance()
+        self.attendance_data = self.fetch_student_daily_attendance()
 
-        if attendance_data is not None:
+        if self.attendance_data is not None:
             # Create a scrollable canvas
             canvas = Canvas(instructor_form)
             canvas.pack(side="left", fill="both", expand=True, padx=20, pady=20)
@@ -108,50 +109,93 @@ class InstructorLanding:
                 lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
             )
 
-            # Create table headers with proper column alignment
-            headers = ["ID", "First Name", "Middle Name", "Last Name", "Username", "Reason", "Status", "Approval"]
-            for idx, header in enumerate(headers):
-                Label(scrollable_frame, text=header, font=("Arial", 10, "bold"), borderwidth=1, relief="solid", width=20).grid(row=0, column=idx)
+            # Add table header here (this will always show)
+            self.add_table_header(scrollable_frame)
 
-            # Add header for Action buttons
-            Label(scrollable_frame, text="Action", font=("Arial", 10, "bold"), borderwidth=1, relief="solid", width=20).grid(row=0, column=len(headers))
+            # Display table rows
+            self.display_table_rows(scrollable_frame)
 
-            # Populate rows with data
-            for i, row in enumerate(attendance_data, start=1):
-                for j, value in enumerate(row[:9]):  # Exclude unnecessary fields
-                    Label(scrollable_frame, text=value, borderwidth=1, relief="solid", width=20).grid(row=i, column=j)
+            # Set up a polling timer to refresh the table every 3 seconds
+            instructor_form.after(1000, self.refresh_table, scrollable_frame)
 
+        else:
+            Label(instructor_form, text="No attendance records found for today.", font=("Arial", 14, "italic"), fg="red").pack(pady=30)
+
+    def add_table_header(self, scrollable_frame):
+        """Add the header for the attendance table."""
+        headers = ["ID", "First Name", "Middle Name", "Last Name", "Username", "Reason", "Status", "Approval", "Date"]
+        for idx, header in enumerate(headers):
+            Label(scrollable_frame, text=header, font=("Arial", 10, "bold"), borderwidth=1, relief="solid", width=20).grid(row=0, column=idx)
+
+    def display_table_rows(self, scrollable_frame):
+        """Display rows of student data in the table."""
+        for i, row in enumerate(self.attendance_data, start=1):
+            # Display the attendance details
+            for j, value in enumerate(row[:9]):  # Exclude unnecessary fields
+                Label(scrollable_frame, text=value, borderwidth=1, relief="solid", width=20).grid(row=i, column=j)
+
+            # Check if the approval status is 'Pending'
+            if row[7] == 'Pending':  # Assuming 'a_approval' is at index 7
                 # Add Approve and Decline buttons with proper alignment
                 action_frame = Frame(scrollable_frame)
-                action_frame.grid(row=i, column=len(headers), padx=10, pady=5)
+                action_frame.grid(row=i, column=len(self.attendance_data[0]), padx=10, pady=5)
 
                 approve_button = Button(action_frame, text="Approve", bg="green", fg="white",
-                                       command=lambda r=row: self.update_attendance_status_by_row(r, "Approved"))
+                                    command=lambda r=row: self.update_attendance_status_by_row(r, "Approved"))
                 approve_button.pack(side="left", padx=5)
 
                 decline_button = Button(action_frame, text="Decline", bg="red", fg="white",
                                         command=lambda r=row: self.update_attendance_status_by_row(r, "Declined"))
                 decline_button.pack(side="left", padx=5)
 
-        else:
-            Label(instructor_form, text="No attendance records found for today.", font=("Arial", 14, "italic"), fg="red").pack(pady=30)
 
     def update_attendance_status_by_row(self, row, status):
         """Update the attendance approval status in the database for a specific row."""
         try:
-            student_id = row[0]  # Assuming 'Student ID' is in the first column
-            attendance_date = today_date  # Use today's date for the attendance update
+            student_id = row[0] 
+            attendance_date = today_date 
 
-            # Update the database
+            logging.info(f"Updating attendance status: student_id={student_id}, date={attendance_date}, status={status}")
+
             query = """
                 UPDATE attendance 
                 SET a_approval = %s 
                 WHERE a_student_id = %s AND DATE(a_date) = %s
             """
+            logging.info(f"Executing query: {query} with values {status, student_id, attendance_date}")
+
+            # Execute the query
             self.cursor.execute(query, (status, student_id, attendance_date))
             self.connection.commit()
 
-            messagebox.showinfo("Success", f"Attendance status for {row[1]} updated to '{status}'.")
+            # Check how many rows were affected
+            if self.cursor.rowcount == 0:
+                logging.warning("No rows were updated. Check if the attendance record exists.")
+                messagebox.showerror("Error", "No matching attendance record found.")
+            else:
+                logging.info("Attendance status updated successfully.")
+                messagebox.showinfo("Success", f"Attendance status for {row[1]} updated to '{status}'.")
+
+            # After updating, refresh the data and UI
+            self.refresh_table()
+
         except Exception as e:
             logging.error(f"Error updating attendance status: {e}")
-            messagebox.showerror("Error", "Failed to update attendance status.")
+        messagebox.showerror("Error", f"Failed to update attendance status: {e}")
+
+
+
+
+    def refresh_table(self, scrollable_frame):
+        """Refresh the table by fetching the latest data from the database and updating the UI."""
+        self.attendance_data = self.fetch_student_daily_attendance()
+
+        # Clear the existing rows from the table
+        for widget in scrollable_frame.winfo_children():
+            widget.grid_forget()
+
+        # Re-add the header
+        self.add_table_header(scrollable_frame)
+
+        # Re-display the table rows with updated data
+        self.display_table_rows(scrollable_frame)
