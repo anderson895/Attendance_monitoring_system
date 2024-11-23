@@ -97,28 +97,29 @@ class StudentLanding:
         student_form.grid_columnconfigure(2, weight=1)
         student_form.grid_columnconfigure(3, weight=1)
 
-        # Add Buttons in the header with clear distinctions
-        Button(header_frame, text="Settings", font=("Arial", 12), command=self.show_settings, bg="#005A9E", fg="white", relief="flat").grid(row=0, column=0, padx=20)
-        Button(header_frame, text="Logout", font=("Arial", 12), command=lambda: self.logout(student_form), bg="#E57373", fg="white", relief="flat").grid(row=0, column=1, padx=20)
-
+       
         # Display student's full name in the welcome label
         full_name = ""
         student_info = self.fetch_student_data(user_id)
+
+ 
+
+
         if student_info:
             user_id, fname, mname, lname, username, role = student_info
             full_name = f"{fname} {mname if mname else ''} {lname}"
 
-        # Display "Daily Attendance" header label
+            # Add Buttons in the header with clear distinctions
+        Button(header_frame, text=f"{full_name}", font=("Arial", 12), bg="#005A9E", fg="white", relief="flat").grid(row=0, column=0, padx=20)
+        Button(header_frame, text="Settings", font=("Arial", 12), command=self.show_settings, bg="#005A9E", fg="white", relief="flat").grid(row=0, column=1, padx=20)
+        Button(header_frame, text="Logout", font=("Arial", 12), command=lambda: self.logout(student_form), bg="#E57373", fg="white", relief="flat").grid(row=0, column=3, padx=20)
+
+        # Display "Daily Attendance" header label (Center it)
         daily_attendance_label = Label(student_form, text="Daily Attendance", font=("Arial", 16, "bold"), bg="#f5f5f5")
-        daily_attendance_label.grid(row=1, column=0, columnspan=4, pady=20)
+        daily_attendance_label.grid(row=1, column=0, columnspan=4, pady=20, sticky="nsew")
 
-        # Display student data or error message with improved styling
-        Label(student_form, text="Student ID", font=("Arial", 12, "bold")).grid(row=2, column=0, padx=10, pady=5, sticky="ew")
-        Label(student_form, text="Full Name", font=("Arial", 12, "bold")).grid(row=2, column=1, padx=10, pady=5, sticky="ew")
 
-        Label(student_form, text=f"{user_id}", font=("Arial", 10)).grid(row=3, column=0, padx=10, pady=5, sticky="ew")
-        Label(student_form, text=full_name, font=("Arial", 10)).grid(row=3, column=1, padx=10, pady=5, sticky="ew")
-
+    
         # Add Attendance buttons below Student ID and Full Name
         attendance_status = "Not Exist"
         if student_data:
@@ -129,25 +130,39 @@ class StudentLanding:
 
         if attendance_status == 'Exist':
             absent_button = Button(student_form, text="Absent", font=("Arial", 10), state="disabled", relief="flat", bg="#E0E0E0", width=4)
-            absent_button.grid(row=2, column=2, padx=5, pady=5, sticky="ew")
+            absent_button.grid(row=4, column=1, padx=5, pady=5, sticky="ew")
             present_button = Button(student_form, text="Present", font=("Arial", 10), state="disabled", relief="flat", bg="#E0E0E0", width=4)
-            present_button.grid(row=2, column=3, padx=5, pady=5, sticky="ew")
+            present_button.grid(row=4, column=2, padx=5, pady=5, sticky="ew")
         else:
             absent_button = Button(student_form, text="Absent", font=("Arial", 10), command=lambda: self.ask_for_absence_reason(user_id, username, student_form), relief="flat", bg="#FF7043", fg="white", width=4)
-            absent_button.grid(row=2, column=2, padx=5, pady=5, sticky="ew")
+            absent_button.grid(row=4, column=1, padx=5, pady=5, sticky="ew")
             present_button = Button(student_form, text="Present", font=("Arial", 10), command=lambda: self.mark_present(user_id, username, student_form), relief="flat", bg="#66BB6A", fg="white", width=4)
-            present_button.grid(row=2, column=3, padx=5, pady=5, sticky="ew")
+            present_button.grid(row=4, column=2, padx=5, pady=5, sticky="ew")
 
-        # Display attendance history with enhanced design
+       # Display attendance history with enhanced design
         history_label = Label(student_form, text="Attendance History", font=("Arial", 14, "bold"), bg="#f5f5f5")
         history_label.grid(row=5, column=0, columnspan=4, pady=20)
 
         if attendance_history:
             for index, (a_date, a_status, a_reason) in enumerate(attendance_history, start=6):
-                status_display = f"{a_status} - {a_reason if a_reason else 'No reason provided'}"
-                Label(student_form, text=f"{a_date}: {status_display}", font=("Arial", 10), bg="#f5f5f5").grid(row=index, column=0, columnspan=4, padx=10, pady=5)
+                # Determine the foreground color based on attendance status
+                color = "#FF0000" if a_status.lower() == "absent" else "#008000"  # Red for Absent, Green for Present
+                status_display = f"{a_status} - {a_reason if a_reason else 'N/A'}"
+
+                Label(
+                    student_form,
+                    text=f"{a_date}: {status_display}",
+                    font=("Arial", 10),
+                    bg="#f5f5f5",
+                    fg=color  # Set color dynamically
+                ).grid(row=index, column=0, columnspan=4, padx=10, pady=5)
         else:
-            Label(student_form, text="No attendance history found.", font=("Arial", 10), bg="#f5f5f5").grid(row=6, column=0, columnspan=4, padx=10, pady=5)
+            Label(
+                student_form,
+                text="No attendance history found.",
+                font=("Arial", 10),
+                bg="#f5f5f5"
+            ).grid(row=6, column=0, columnspan=4, padx=10, pady=5)
 
 
 
