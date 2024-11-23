@@ -1,4 +1,4 @@
-from tkinter import Toplevel, Label, Button, messagebox
+from tkinter import Toplevel, Label, Button, Entry, messagebox
 from datetime import datetime
 import pytz
 
@@ -125,11 +125,49 @@ class StudentLanding:
             present_button.grid(row=3, column=4, padx=5, pady=5, sticky="ew")
         else:
             # Enable buttons if no attendance
-            absent_button = Button(student_form, text="Absent", font=("Arial", 10), command=lambda: self.mark_absent(user_id, username, student_form))
+            absent_button = Button(student_form, text="Absent", font=("Arial", 10), command=lambda: self.ask_for_absence_reason(user_id, username, student_form))
             absent_button.grid(row=3, column=3, padx=5, pady=5, sticky="ew")
+
 
             present_button = Button(student_form, text="Present", font=("Arial", 10), command=lambda: self.mark_present(user_id, username, student_form))
             present_button.grid(row=3, column=4, padx=5, pady=5, sticky="ew")
+
+    def ask_for_absence_reason(self, student_id, username, student_form):
+        """Ask the student for a reason if marking as absent."""
+        # Create a new top-level window to input the reason for absence
+        reason_form = Toplevel(student_form)
+        reason_form.title("Enter Absence Reason")
+        reason_form.geometry("400x200")
+
+        # Add label and entry for the reason
+        Label(reason_form, text="Please provide a reason for your absence:", font=("Arial", 12)).pack(pady=10)
+        reason_entry = Entry(reason_form, font=("Arial", 12), width=30)
+        reason_entry.pack(pady=10)
+
+        # Add submit button
+        Button(reason_form, text="Submit", font=("Arial", 12), command=lambda: self.mark_absent_with_reason(student_id, username, reason_entry.get(), reason_form, student_form)).pack(pady=10)
+
+    def mark_absent_with_reason(self, student_id, username, reason, reason_form, student_form):
+        """Mark the student as absent with a reason."""
+        if not reason:
+            messagebox.showwarning("Input Error", "Please provide a reason for your absence.")
+            return
+
+        try:
+            query = """
+            INSERT INTO attendance (a_student_id, a_status, a_date, a_reason) 
+            VALUES (%s, %s, %s, %s)
+            """
+            self.cursor.execute(query, (student_id, 'Absent', today_date, reason))
+            self.connection.commit()
+
+            messagebox.showinfo("Success", "Attendance marked as Absent.")
+            reason_form.destroy()
+            student_form.destroy()
+            self.show_student_dashboard(student_id, username)
+
+        except Exception as e:
+            messagebox.showerror("Error", f"An error occurred: {e}")
 
     def mark_present(self, student_id, username, student_form):
         """Mark the student as present in the attendance table."""
@@ -142,23 +180,6 @@ class StudentLanding:
             self.connection.commit()
 
             messagebox.showinfo("Success", "Attendance marked as Present.")
-            student_form.destroy()
-            self.show_student_dashboard(student_id, username)
-
-        except Exception as e:
-            messagebox.showerror("Error", f"An error occurred: {e}")
-
-    def mark_absent(self, student_id, username, student_form):
-        """Mark the student as absent in the attendance table."""
-        try:
-            query = """
-            INSERT INTO attendance (a_student_id, a_status, a_date) 
-            VALUES (%s, %s, %s)
-            """
-            self.cursor.execute(query, (student_id, 'Absent', today_date))
-            self.connection.commit()
-
-            messagebox.showinfo("Success", "Attendance marked as Absent.")
             student_form.destroy()
             self.show_student_dashboard(student_id, username)
 
