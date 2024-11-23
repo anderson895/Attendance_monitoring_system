@@ -7,9 +7,9 @@ class Database:
         try:
             conn = mysql.connector.connect(
                 host='localhost',
-                database='login_system',  # Replace with your actual database name
-                user='root',              # Replace with your actual DB username
-                password=''              # Replace with your actual DB password
+                database='gab_attendance',  
+                user='root',             
+                password='' 
             )
             if conn.is_connected():
                 print("Database connection successful.")
