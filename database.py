@@ -7,7 +7,7 @@ class Database:
         try:
             conn = mysql.connector.connect(
                 host='localhost',
-                database='gab_attendance',  
+                database='mj',  
                 user='root',             
                 password='' 
             )

@@ -111,7 +111,6 @@ class StudentLanding:
 
             # Add Buttons in the header with clear distinctions
         Button(header_frame, text=f"{full_name}", font=("Arial", 12), bg="#005A9E", fg="white", relief="flat").grid(row=0, column=0, padx=20)
-        Button(header_frame, text="Settings", font=("Arial", 12), command=self.show_settings, bg="#005A9E", fg="white", relief="flat").grid(row=0, column=1, padx=20)
         Button(header_frame, text="Logout", font=("Arial", 12), command=lambda: self.logout(student_form), bg="#E57373", fg="white", relief="flat").grid(row=0, column=3, padx=20)
 
         # Display "Daily Attendance" header label (Center it)
