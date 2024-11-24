@@ -3,7 +3,7 @@ from tkinter import Toplevel, Label, Button, Frame, messagebox, Canvas, Scrollba
 import threading
 import time
 from datetime import datetime
-from list_students import List_students
+from list_students import List_users
 import pytz
 
 today_date = datetime.now(pytz.timezone('Asia/Manila')).strftime('%Y-%m-%d')
@@ -15,11 +15,11 @@ class InstructorLanding:
         self.cursor = connection.cursor()
         self.main_app = main_app
         self.attendance_data = []  
-        self.all_students_data = [] 
+        self.all_users_data = [] 
         self.refresh_interval = 3
         
         # Initialize List_students with the database connection
-        self.list_students = List_students(self.connection) 
+        self.list_students = List_users(self.connection) 
         
     def logout(self, instructor_form):
         """Handle the logout functionality."""
@@ -76,17 +76,17 @@ class InstructorLanding:
             print("Fetching students...")
             
             # Fetch all students from List_students instance
-            self.list_students.fetch_all_students()  # Call the fetch method of List_students
+            self.list_students.fetch_all_users()  # Call the fetch method of List_students
             
             # Debugging output to confirm students are fetched
-            print(f"Fetched students data: {self.list_students.all_students_data}")
+            print(f"Fetched students data: {self.list_students.all_users_data}")
             
             # Create a new window to display the students
             student_list_window = Toplevel()
-            student_list_window.title("Student List")
+            student_list_window.title("User List")
             
             # Now call the method to display the students' table
-            self.list_students.all_students_table(student_list_window)
+            self.list_students.all_users_table(student_list_window)
 
 
 
@@ -97,7 +97,7 @@ class InstructorLanding:
         messagebox.showinfo("Coming Soon", "This feature is under development.")
 
     def show_instructor_dashboard(self, user_id, username):
-        """Show the instructor dashboard with Approve/Decline buttons per student."""
+        """Show the instructor dashboard with Approve/Decline buttons per users."""
         instructor_data = self.fetch_instructor_data(username)
 
         if instructor_data is None:
@@ -152,15 +152,9 @@ class InstructorLanding:
         header_frame = Frame(parent, bg="gray", height=50)
         header_frame.pack(fill="x")
 
-        # Add Menu Buttons in the Header
-        Button(header_frame, text="Dashboard", bg="lightblue", command=self.placeholder_action, width=15).pack(side="left", padx=5, pady=10)
-        Button(header_frame, text="Profile", bg="lightblue", command=self.placeholder_action, width=15).pack(side="left", padx=5, pady=10)
-        Button(header_frame, text="Settings", bg="lightblue", command=self.placeholder_action, width=15).pack(side="left", padx=5, pady=10)
-
         # Updated "Students" Button to Show All Students List
-        Button(header_frame, text="Students", bg="lightblue", command=lambda: self.show_students(parent), width=15).pack(side="left", padx=5, pady=10)
+        Button(header_frame, text="Manage User", bg="lightblue", command=lambda: self.show_students(parent), width=15).pack(side="left", padx=5, pady=10)
 
-        Button(header_frame, text="Instructor", bg="lightblue", command=self.placeholder_action, width=15).pack(side="left", padx=5, pady=10)
         Button(header_frame, text="Logout", bg="red", fg="white", command=logout_action, width=15).pack(side="right", padx=5, pady=10)
 
         return header_frame
