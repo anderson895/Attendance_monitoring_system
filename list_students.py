@@ -301,9 +301,55 @@ class List_users:
                 messagebox.showerror("Error", "Failed to delete user.")
 
     def view_user_details(self, user):
-        """Show detailed user information."""
+        """Show detailed user information and their attendance records."""
         user_id, fname, mname, lname, username, role = user
-        messagebox.showinfo("User Details", f"ID: {user_id}\nName: {fname} {mname} {lname}\nUsername: {username}\nRole: {role}")
+
+        # Display user details in a message box (you can modify this as needed)
+        user_details = f"ID: {user_id}\nName: {fname} {mname} {lname}\nUsername: {username}\nRole: {role}"
+        messagebox.showinfo("User Details", user_details)
+
+        # Fetch attendance records for the selected user
+        self.show_user_attendance(user_id, fname, lname)
+    
+    def show_user_attendance(self, user_id, first_name, last_name):
+        """Fetch and display the attendance records for a user."""
+        # Create a new window for the attendance records
+        attendance_window = Toplevel()
+        attendance_window.title(f"Attendance Records for {first_name} {last_name}")
+
+        try:
+            # Query to fetch attendance records for the specific user (including reason and approval)
+            query = """
+                SELECT a_date, a_status, a_reason, a_approval FROM attendance WHERE a_student_id = %s
+            """
+            cursor = self.connection.cursor()
+            cursor.execute(query, (user_id,))
+            attendance_records = cursor.fetchall()
+            cursor.close()
+
+            # If records are found, display them in a table
+            if attendance_records:
+                # Create column headers
+                Label(attendance_window, text="Date", font=("Arial", 12, "bold"), borderwidth=1, relief="solid", width=20).grid(row=0, column=0, padx=10, pady=10)
+                Label(attendance_window, text="Status", font=("Arial", 12, "bold"), borderwidth=1, relief="solid", width=20).grid(row=0, column=1, padx=10, pady=10)
+                Label(attendance_window, text="Reason", font=("Arial", 12, "bold"), borderwidth=1, relief="solid", width=30).grid(row=0, column=2, padx=10, pady=10)
+                Label(attendance_window, text="Approval", font=("Arial", 12, "bold"), borderwidth=1, relief="solid", width=20).grid(row=0, column=3, padx=10, pady=10)
+
+                # Display attendance records in rows
+                for i, (date, status, reason, approval) in enumerate(attendance_records, start=1):
+                    Label(attendance_window, text=date, font=("Arial", 12), borderwidth=1, relief="solid", width=20).grid(row=i, column=0, padx=10, pady=10)
+                    Label(attendance_window, text=status, font=("Arial", 12), borderwidth=1, relief="solid", width=20).grid(row=i, column=1, padx=10, pady=10)
+                    Label(attendance_window, text=reason or "N/A", font=("Arial", 12), borderwidth=1, relief="solid", width=30).grid(row=i, column=2, padx=10, pady=10)
+                    Label(attendance_window, text=approval or "N/A", font=("Arial", 12), borderwidth=1, relief="solid", width=20).grid(row=i, column=3, padx=10, pady=10)
+            else:
+                Label(attendance_window, text="No attendance records found.", font=("Arial", 12)).pack(pady=20)
+
+        except Exception as e:
+            logging.error(f"Error fetching attendance records: {e}")
+            messagebox.showerror("Error", "Failed to fetch attendance records.")
+
+
+
         
     def show_users(self):
         """Display the list of all users in a new window."""
