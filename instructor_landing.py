@@ -1,8 +1,9 @@
 import logging
-from tkinter import Toplevel, Label, Button, Frame, messagebox, Canvas, Scrollbar,Entry
+from tkinter import Toplevel, Label, Button, Frame, messagebox, Canvas, Scrollbar, Entry
 import threading
 import time
 from datetime import datetime
+from list_students import List_students
 import pytz
 
 today_date = datetime.now(pytz.timezone('Asia/Manila')).strftime('%Y-%m-%d')
@@ -13,10 +14,13 @@ class InstructorLanding:
         self.connection = connection
         self.cursor = connection.cursor()
         self.main_app = main_app
-        self.attendance_data = []  # This will store the current attendance data for real-time updates
-        self.all_students_data = []  # This will store the list of all students
-        self.refresh_interval = 3  # Refresh every 3 seconds
-
+        self.attendance_data = []  
+        self.all_students_data = [] 
+        self.refresh_interval = 3
+        
+        # Initialize List_students with the database connection
+        self.list_students = List_students(self.connection) 
+        
     def close(self):
         """Safely close the database cursor and connection."""
         try:
@@ -27,11 +31,7 @@ class InstructorLanding:
         except Exception as e:
             logging.error(f"Error while closing resources: {e}")
 
-    def logout(self, instructor_form):
-        """Handle the logout functionality."""
-        instructor_form.destroy()  # Close the dashboard
-        self.main_app.deiconify()  # Show the login window
-        messagebox.showinfo("Logged Out", "You have been logged out successfully.")
+   
 
     def fetch_instructor_data(self, username):
         """Fetch instructor-specific data from the database."""
@@ -57,31 +57,33 @@ class InstructorLanding:
             logging.error(f"Error fetching student data: {e}")
             return None
 
-    def fetch_all_students(self):
-        """Fetch all students from the database."""
-        try:
-            query = """
-                SELECT id, fname, mname, lname, username FROM users WHERE role = 'Student'
-            """
-            self.cursor.execute(query)
-            return self.cursor.fetchall()
-        except Exception as e:
-            logging.error(f"Error fetching all students: {e}")
-            return None
+  
+    
 
-    def create_header(self, parent, logout_action):
-        """Create a header navigation bar with menu buttons."""
-        header_frame = Frame(parent, bg="gray", height=50)
-        header_frame.pack(fill="x")
+   
 
-        # Add Menu Buttons in the Header
-        Button(header_frame, text="Dashboard", bg="lightblue", command=self.placeholder_action, width=15).pack(side="left", padx=5, pady=10)
-        Button(header_frame, text="Profile", bg="lightblue", command=self.placeholder_action, width=15).pack(side="left", padx=5, pady=10)
-        Button(header_frame, text="Settings", bg="lightblue", command=self.placeholder_action, width=15).pack(side="left", padx=5, pady=10)
-        Button(header_frame, text="Logout", bg="red", fg="white", command=logout_action, width=15).pack(side="right", padx=5, pady=10)
 
-        return header_frame
+    def show_students(self, parent=None):
+            """Display the list of all students in a new window."""
+            print("Fetching students...")
+            
+            # Fetch all students from List_students instance
+            self.list_students.fetch_all_students()  # Call the fetch method of List_students
+            
+            # Debugging output to confirm students are fetched
+            print(f"Fetched students data: {self.list_students.all_students_data}")
+            
+            # Create a new window to display the students
+            student_list_window = Toplevel()
+            student_list_window.title("Student List")
+            
+            # Now call the method to display the students' table
+            self.list_students.all_students_table(student_list_window)
 
+
+
+
+   
     def placeholder_action(self):
         """Placeholder action for future functionality."""
         messagebox.showinfo("Coming Soon", "This feature is under development.")
@@ -123,17 +125,11 @@ class InstructorLanding:
                 lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
             )
 
-
             # Add table header for attendance
             self.add_table_header(scrollable_frame)
 
             # Display table rows for attendance
             self.display_table_rows(scrollable_frame)
-
-            # Add another table for all students
-            self.all_students_data = self.fetch_all_students()
-            if self.all_students_data:
-                self.add_all_students_table(instructor_form)
 
             # Start a thread for real-time updates
             self.polling_thread = threading.Thread(target=self.poll_database, args=(instructor_form, scrollable_frame))
@@ -142,6 +138,25 @@ class InstructorLanding:
 
         else:
             Label(instructor_form, text="No attendance records found for today.", font=("Arial", 14, "italic"), fg="red").pack(pady=30)
+
+    def create_header(self, parent, logout_action):
+        """Create a header navigation bar with menu buttons."""
+        header_frame = Frame(parent, bg="gray", height=50)
+        header_frame.pack(fill="x")
+
+        # Add Menu Buttons in the Header
+        Button(header_frame, text="Dashboard", bg="lightblue", command=self.placeholder_action, width=15).pack(side="left", padx=5, pady=10)
+        Button(header_frame, text="Profile", bg="lightblue", command=self.placeholder_action, width=15).pack(side="left", padx=5, pady=10)
+        Button(header_frame, text="Settings", bg="lightblue", command=self.placeholder_action, width=15).pack(side="left", padx=5, pady=10)
+
+        # Updated "Students" Button to Show All Students List
+        Button(header_frame, text="Students", bg="lightblue", command=lambda: self.show_students(parent), width=15).pack(side="left", padx=5, pady=10)
+
+        Button(header_frame, text="Instructor", bg="lightblue", command=self.placeholder_action, width=15).pack(side="left", padx=5, pady=10)
+        Button(header_frame, text="Logout", bg="red", fg="white", command=logout_action, width=15).pack(side="right", padx=5, pady=10)
+
+        return header_frame
+
 
     def add_table_header(self, scrollable_frame):
         """Add the header for the attendance table."""
@@ -156,9 +171,7 @@ class InstructorLanding:
             for j, value in enumerate(row[:9]):  # Exclude unnecessary fields
                 Label(scrollable_frame, text=value, borderwidth=1, relief="solid", width=20).grid(row=i, column=j)
 
-            # Check if the approval status is 'Pending'
-            if row[7] == 'Pending':  # Assuming 'a_approval' is at index 7
-                # Add Approve and Decline buttons with proper alignment
+            if row[7] == 'Pending': 
                 action_frame = Frame(scrollable_frame)
                 action_frame.grid(row=i, column=len(self.attendance_data[0]), padx=10, pady=5)
 
@@ -170,125 +183,7 @@ class InstructorLanding:
                                         command=lambda r=row, sf=scrollable_frame: self.update_attendance_status_by_row(r, "Declined", sf))
                 decline_button.pack(side="left", padx=5)
 
-    def add_all_students_table(self, parent_frame):
-        """Add the table showing all students below the attendance table."""
-        all_students_frame = Frame(parent_frame)
-        all_students_frame.pack(pady=30, anchor="w")
-
-        # Title for the All Students table
-        title_label = Label(all_students_frame, text="List of All Students", font=("Arial", 14, "bold"))
-        title_label.grid(row=0, column=0, columnspan=6, pady=10)
-
-        # Table header for all students
-        headers = ["ID", "First Name", "Middle Name", "Last Name", "Username", "View"]
-        for idx, header in enumerate(headers):
-            Label(all_students_frame, text=header, font=("Arial", 10, "bold"), borderwidth=1, relief="solid", width=20).grid(row=1, column=idx)
-
-        # Table rows for all students
-        for i, student in enumerate(self.all_students_data, start=2):  # Start from row 2 to account for the title and headers
-            for j, value in enumerate(student[:5]):  # Exclude the View button column
-                Label(all_students_frame, text=value, borderwidth=1, relief="solid", width=20).grid(row=i, column=j)
-
-            # Add "View" button
-            view_button = Button(all_students_frame, text="View", bg="blue", fg="white",
-                                command=lambda s=student: self.view_student_details(s))
-            view_button.grid(row=i, column=5)
-
-        # Add "Add Student" button below the table
-        add_student_button = Button(all_students_frame, text="Add Student", bg="green", fg="white", 
-                                    command=self.add_student_form)
-        add_student_button.grid(row=len(self.all_students_data) + 2, column=0, columnspan=6, pady=20)
-
-
-    def add_student_form(self):
-        """Open a form to add a new student."""
-        add_student_window = Toplevel()
-        add_student_window.title("Add New Student")
-        add_student_window.geometry("400x400")  # Increase height to accommodate the password field
-
-        # Create labels and entry fields for student information
-        Label(add_student_window, text="First Name").grid(row=0, column=0, padx=10, pady=10, sticky="e")
-        first_name_entry = Entry(add_student_window)
-        first_name_entry.grid(row=0, column=1, padx=10, pady=10)
-
-        Label(add_student_window, text="Middle Name").grid(row=1, column=0, padx=10, pady=10, sticky="e")
-        middle_name_entry = Entry(add_student_window)
-        middle_name_entry.grid(row=1, column=1, padx=10, pady=10)
-
-        Label(add_student_window, text="Last Name").grid(row=2, column=0, padx=10, pady=10, sticky="e")
-        last_name_entry = Entry(add_student_window)
-        last_name_entry.grid(row=2, column=1, padx=10, pady=10)
-
-        Label(add_student_window, text="Username").grid(row=3, column=0, padx=10, pady=10, sticky="e")
-        username_entry = Entry(add_student_window)
-        username_entry.grid(row=3, column=1, padx=10, pady=10)
-
-        # Add password field
-        Label(add_student_window, text="Password").grid(row=4, column=0, padx=10, pady=10, sticky="e")
-        password_entry = Entry(add_student_window, show="*")  # 'show' hides the text entered
-        password_entry.grid(row=4, column=1, padx=10, pady=10)
-
-        # Add a submit button
-        def submit_student():
-            """Submit the new student data to the database."""
-            first_name = first_name_entry.get()
-            middle_name = middle_name_entry.get()
-            last_name = last_name_entry.get()
-            username = username_entry.get()
-            password = password_entry.get()
-
-            if not first_name or not middle_name or not last_name or not username or not password:
-                messagebox.showerror("Error", "All fields must be filled out.")
-                return
-
-            try:
-                # Insert the student data, including the password, into the database
-                query = """
-                    INSERT INTO users (fname, mname, lname, username, password, role) 
-                    VALUES (%s, %s, %s, %s, %s, 'Student')
-                """
-                self.cursor.execute(query, (first_name, middle_name, last_name, username, password))
-                self.connection.commit()
-
-                # Refresh the student list after adding the new student
-                self.all_students_data = self.fetch_all_students()
-
-                # Ensure the parent window exists before attempting to update the table
-                if add_student_window.master.winfo_exists():  
-                    # Refresh the table with the updated student data
-                    self.add_all_students_table(add_student_window.master)
-
-                # Show success message
-                messagebox.showinfo("Success", "Student added successfully.")
-
-                # Clear the input fields in the form for the next input
-                first_name_entry.delete(0, 'end')
-                middle_name_entry.delete(0, 'end')
-                last_name_entry.delete(0, 'end')
-                username_entry.delete(0, 'end')
-                password_entry.delete(0, 'end')
-
-                # Close the add student window after successful submission
-                add_student_window.destroy()
-
-            except Exception as e:
-                logging.error(f"Error adding student: {e}")
-                messagebox.showerror("Error", "Failed to add student.")
-
-        # Bind the submit button to the function
-        submit_button = Button(add_student_window, text="Submit", bg="blue", fg="white", command=submit_student)
-        submit_button.grid(row=5, column=0, columnspan=2, pady=20)
-
-
-
-
-
-
-
-    def view_student_details(self, student):
-        """Handle the 'View' button action to show detailed student information."""
-        student_id, fname, mname, lname, username = student
-        messagebox.showinfo("Student Details", f"ID: {student_id}\nName: {fname} {mname} {lname}\nUsername: {username}")
+   
 
     def update_attendance_status_by_row(self, row, status, scrollable_frame):
         """Update the attendance approval status in the database for a specific row."""
@@ -344,4 +239,5 @@ class InstructorLanding:
             else:
                 logging.error("scrollable_frame no longer exists. Stopping polling.")
                 break  # Stop polling if the scrollable_frame is destroyed
+
 
