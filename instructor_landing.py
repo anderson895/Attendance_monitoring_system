@@ -21,17 +21,25 @@ class InstructorLanding:
         # Initialize List_students with the database connection
         self.list_students = List_students(self.connection) 
         
-    def close(self):
-        """Safely close the database cursor and connection."""
+    def logout(self, instructor_form):
+        """Handle the logout functionality."""
         try:
-            if self.cursor:
-                self.cursor.close()
-            if self.connection:
-                self.connection.close()
-        except Exception as e:
-            logging.error(f"Error while closing resources: {e}")
+            # Close the instructor window (instructor_form)
+            instructor_form.destroy()
 
-   
+            # Ensure the main window (main_app) is shown again
+            if hasattr(self.main_app, "deiconify"):
+                self.main_app.deiconify()  # Show the main window again
+                logging.info("Main app window re-shown.")
+            else:
+                logging.error("Main app window not found or 'deiconify' method unavailable.")
+            
+            # Display a confirmation message
+            messagebox.showinfo("Logged Out", "You have been logged out successfully.")
+        except Exception as e:
+            logging.error(f"Error during logout: {e}")
+            messagebox.showerror("Error", f"Failed to log out: {e}")
+
 
     def fetch_instructor_data(self, username):
         """Fetch instructor-specific data from the database."""
