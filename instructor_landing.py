@@ -106,7 +106,7 @@ class InstructorLanding:
 
         instructor_form = Toplevel()
         instructor_form.title(f"Instructor Dashboard - {username}")
-        # instructor_form.attributes('-fullscreen', True)
+        instructor_form.attributes('-fullscreen', True)
 
         # Add header
         self.create_header(instructor_form, lambda: self.logout(instructor_form))
