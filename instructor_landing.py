@@ -55,7 +55,7 @@ class InstructorLanding:
         """Fetch student-specific data with attendance records for today."""
         try:
             query = """
-                SELECT u.id, u.fname, u.mname, u.lname, u.username, a.a_reason, a.a_status, a.a_approval, a.a_date, u.role, a.a_student_id
+                SELECT u.id, u.fname, u.username, a.a_reason, a.a_status, a.a_approval, a.a_date, u.role, a.a_student_id
                 FROM users u
                 INNER JOIN attendance a ON a.a_student_id = u.id AND DATE(a.a_date) = %s
             """
@@ -64,6 +64,7 @@ class InstructorLanding:
         except Exception as e:
             logging.error(f"Error fetching student data: {e}")
             return None
+
 
   
     
@@ -162,30 +163,39 @@ class InstructorLanding:
 
     def add_table_header(self, scrollable_frame):
         """Add the header for the attendance table."""
-        headers = ["ID", "First Name", "Middle Name", "Last Name", "Username", "Reason", "Status", "Approval", "Date"]
+        # Updated headers without Middle Name and Last Name
+        headers = ["ID", "First Name", "Username", "Reason", "Status", "Approval", "Date"]
         for idx, header in enumerate(headers):
             Label(scrollable_frame, text=header, font=("Arial", 10, "bold"), borderwidth=1, relief="solid", width=20).grid(row=0, column=idx)
+
 
     def display_table_rows(self, scrollable_frame):
         """Display rows of student data in the table."""
         for i, row in enumerate(self.attendance_data, start=1):
-            # Display the attendance details
-            for j, value in enumerate(row[:9]):  # Exclude unnecessary fields
-                Label(scrollable_frame, text=value, borderwidth=1, relief="solid", width=20).grid(row=i, column=j)
+            # Only display the necessary fields (ID, First Name, Username, Reason, Status, Approval, Date)
+            Label(scrollable_frame, text=row[0], borderwidth=1, relief="solid", width=20).grid(row=i, column=0)  # ID
+            Label(scrollable_frame, text=row[1], borderwidth=1, relief="solid", width=20).grid(row=i, column=1)  # First Name
+            Label(scrollable_frame, text=row[2], borderwidth=1, relief="solid", width=20).grid(row=i, column=2)  # Username
+            Label(scrollable_frame, text=row[3], borderwidth=1, relief="solid", width=20).grid(row=i, column=3)  # Reason
+            Label(scrollable_frame, text=row[4], borderwidth=1, relief="solid", width=20).grid(row=i, column=4)  # Status
+            Label(scrollable_frame, text=row[5], borderwidth=1, relief="solid", width=20).grid(row=i, column=5)  # Approval
+            Label(scrollable_frame, text=row[6], borderwidth=1, relief="solid", width=20).grid(row=i, column=6)  # Date
 
-            if row[7] == 'Pending': 
+                # Check if the status is 'Pending' (index 5 is now 'Approval' after the updates)
+            if row[5] == 'Pending':  # Approval is now in the 6th column (index 5)
                 action_frame = Frame(scrollable_frame)
-                action_frame.grid(row=i, column=len(self.attendance_data[0]), padx=10, pady=5)
+                action_frame.grid(row=i, column=7, padx=10, pady=5)  # Place action buttons in the 8th column (index 7)
 
                 approve_button = Button(action_frame, text="Approve", bg="green", fg="white",
-                                        command=lambda r=row, sf=scrollable_frame: self.update_attendance_status_by_row(r, "Approved", sf))
+                                            command=lambda r=row, sf=scrollable_frame: self.update_attendance_status_by_row(r, "Approved", sf))
                 approve_button.pack(side="left", padx=5)
 
                 decline_button = Button(action_frame, text="Decline", bg="red", fg="white",
-                                        command=lambda r=row, sf=scrollable_frame: self.update_attendance_status_by_row(r, "Declined", sf))
+                                            command=lambda r=row, sf=scrollable_frame: self.update_attendance_status_by_row(r, "Declined", sf))
                 decline_button.pack(side="left", padx=5)
 
-   
+
+        
 
     def update_attendance_status_by_row(self, row, status, scrollable_frame):
         """Update the attendance approval status in the database for a specific row."""
