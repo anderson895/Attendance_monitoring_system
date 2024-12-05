@@ -185,13 +185,13 @@ class List_users:
             entries[label] = entry
 
         # Role dropdown (ComboBox)
-        role_label = Label(add_user_window, text="Role")
-        role_label.grid(row=5, column=0, padx=10, pady=10, sticky="e")
+        # role_label = Label(add_user_window, text="Role")
+        # role_label.grid(row=5, column=0, padx=10, pady=10, sticky="e")
 
-        role_combobox = ttk.Combobox(add_user_window, values=["Student", "Instructor"])
-        role_combobox.grid(row=5, column=1, padx=10, pady=10)
-        role_combobox.set("Student")  # Default to "Student"
-        entries["Role"] = role_combobox
+        # role_combobox = ttk.Combobox(add_user_window, values=["Student", "Instructor"])
+        # role_combobox.grid(row=5, column=1, padx=10, pady=10)
+        # role_combobox.set("Student")  # Default to "Student"
+        # entries["Role"] = role_combobox
 
         # Submit button
         submit_button = Button(add_user_window, text="Submit", bg="blue", fg="white", 
@@ -205,7 +205,7 @@ class List_users:
         last_name = entries["Last Name"].get()
         username = entries["Username"].get()
         password = entries["Password"].get()
-        role = entries["Role"].get()
+        role = "Student"
 
         if not all([first_name, last_name, username, password]):
             messagebox.showerror("Error", "All fields must be filled out.")
@@ -252,15 +252,15 @@ class List_users:
             entries[label] = entry
 
         # Role dropdown (ComboBox)
-        role_label = Label(update_window, text="Role")
-        role_label.grid(row=5, column=0, padx=10, pady=10, sticky="e")
+        # role_label = Label(update_window, text="Role")
+        # role_label.grid(row=5, column=0, padx=10, pady=10, sticky="e")
 
-        role_combobox = ttk.Combobox(update_window, values=["Student", "Instructor"])
-        role_combobox.grid(row=5, column=1, padx=10, pady=10)
+        # role_combobox = ttk.Combobox(update_window, values=["Student", "Instructor"])
+        # role_combobox.grid(row=5, column=1, padx=10, pady=10)
 
-        # Set default value for role combobox
-        role_combobox.set(role)  # Pre-set the current role
-        entries["Role"] = role_combobox
+        # # Set default value for role combobox
+        # role_combobox.set(role)  # Pre-set the current role
+        # entries["Role"] = role_combobox
 
         # Submit button
         submit_button = Button(update_window, text="Submit", bg="blue", fg="white", 
@@ -275,7 +275,7 @@ class List_users:
         last_name = entries["Last Name"].get()
         username = entries["Username"].get()
         password = entries["Password"].get()
-        role = entries["Role"].get()
+        role = "Student"
 
         if not all([first_name, last_name, username, password]):
             messagebox.showerror("Error", "First Name, Last Name, Username, and Password must be filled out.")
