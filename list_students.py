@@ -11,7 +11,7 @@ class List_users:
         """Fetch all users (students and instructors) from the database."""
         if not self.connection:
             print("Error: No valid database connection.")
-            return None
+            return None, 0
 
         try:
             query = """
@@ -24,19 +24,41 @@ class List_users:
 
             if result:
                 self.all_users_data = result
-                return result
+                total_users = len(result)  # Count total users
+                return result, total_users
             else:
                 print("No users found in the database.")
-                return []
+                return [], 0
 
         except Exception as e:
             logging.error(f"Error fetching all users: {e}")
             print(f"Error fetching all users: {e}")
-            return []
+            return [], 0
+
+
+            
+    def show_users(self):
+        """Display the list of all users in a new window."""
+        print('click')
+        
+        user_list_window = Toplevel()
+        user_list_window.title("User List")
+        
+        # Fetch data and total count of users
+        users, total_users = self.fetch_all_users()
+        
+        # Display user list
+        if users:
+            self.all_users_table(user_list_window)
+        
+        # Display total user count
+        total_label = Label(user_list_window, text=f"Total Users: {total_users}")
+        total_label.pack(pady=10)
+
 
 
     def add_user(self, first_name, middle_name, last_name, username, password, role):
-        """Add a new user (Student or Instructor) to the database."""
+        """Add a new user to the database."""
         try:
             check_query = """
                 SELECT 1 FROM users WHERE username = %s
@@ -114,7 +136,7 @@ class List_users:
             return False
 
     def all_users_table(self, parent_frame):
-        """Add a table displaying all users in the given parent window."""
+        """Add a table displaying all users in the given parent window, including total user count."""
         print("Adding all users table...")  # Debugging
         for widget in parent_frame.winfo_children():
             widget.destroy()
@@ -122,20 +144,29 @@ class List_users:
         all_users_frame = Frame(parent_frame)
         all_users_frame.pack(pady=30, anchor="w")
 
-        title_label = Label(all_users_frame, text="List of All Users (Students and Instructors)", font=("Arial", 14, "bold"))
+        # Title Label
+        title_label = Label(all_users_frame, text="List of All Users", font=("Arial", 14, "bold"))
         title_label.grid(row=0, column=0, columnspan=9, pady=10)
 
+        # Total Users Label
+        total_users = len(self.all_users_data)  # Get the total user count
+        total_users_label = Label(all_users_frame, text=f"Total Users: {total_users}", font=("Arial", 12, "bold"))
+        total_users_label.grid(row=1, column=0, columnspan=9, pady=10)
+
+        # Table Headers
         headers = ["ID", "First Name", "Middle Name", "Last Name", "Username", "Role", "View", "Update", "Delete"]
         for idx, header in enumerate(headers):
-            Label(all_users_frame, text=header, font=("Arial", 10, "bold"), borderwidth=1, relief="solid", width=20).grid(row=1, column=idx)
+            Label(all_users_frame, text=header, font=("Arial", 10, "bold"), borderwidth=1, relief="solid", width=20).grid(row=2, column=idx)
 
-        for i, user in enumerate(self.all_users_data, start=2):
+        # Table Rows
+        for i, user in enumerate(self.all_users_data, start=3):
             for j, value in enumerate(user[:5]):
                 Label(all_users_frame, text=value, borderwidth=1, relief="solid", width=20).grid(row=i, column=j)
 
             role = user[5]  # Assuming the role column is part of the fetched data
             Label(all_users_frame, text=role, borderwidth=1, relief="solid", width=20).grid(row=i, column=5)
 
+            # Buttons for View, Update, Delete
             view_button = Button(
                 all_users_frame,
                 text="View",
@@ -163,13 +194,15 @@ class List_users:
             )
             delete_button.grid(row=i, column=8)
 
+        # Add User Button
         add_user_button = Button(
             all_users_frame, text="Add User", bg="green", fg="white", command=lambda: self.add_user_form(parent_frame)
         )
-        add_user_button.grid(row=len(self.all_users_data) + 2, column=0, columnspan=9, pady=20)
+        add_user_button.grid(row=len(self.all_users_data) + 3, column=0, columnspan=9, pady=20)
+
 
     def add_user_form(self, parent_window):
-        """Open a form to add a new user (Student or Instructor)."""
+        """Open a form to add a new user ."""
         add_user_window = Toplevel(parent_window)  # Use the passed parent_window as the master
         add_user_window.title("Add New User")
         add_user_window.geometry("400x450")
@@ -199,7 +232,7 @@ class List_users:
         submit_button.grid(row=6, column=0, columnspan=2, pady=20)
 
     def submit_user(self, entries, add_user_window):
-        """Submit the form to add the user data (Student or Instructor)."""
+        """Submit the form to add the user data ."""
         first_name = entries["First Name"].get()
         middle_name = entries["Middle Name"].get()
         last_name = entries["Last Name"].get()
@@ -221,7 +254,7 @@ class List_users:
             messagebox.showerror("Error", "Failed to add user.")
 
     def update_user_form(self, user, parent_window):
-        """Open a form to update user details (Student or Instructor)."""
+        """Open a form to update user details ."""
         user_id, first_name, middle_name, last_name, username, role = user
 
         # Create the update window
@@ -351,12 +384,4 @@ class List_users:
 
 
         
-    def show_users(self):
-        """Display the list of all users in a new window."""
-        print('click')
-        
-        user_list_window = Toplevel()
-        user_list_window.title("User List")
-        
-        self.fetch_all_users()
-        self.all_users_table(user_list_window)
+    
