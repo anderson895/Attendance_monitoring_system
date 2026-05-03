@@ -21,7 +21,8 @@
                 $links = $isAdmin ? [
                     'admin/dashboard'  => 'Dashboard',
                     'admin/users'      => 'Users',
-                    'admin/attendance' => 'Attendance Records'
+                    'admin/attendance' => 'Attendance Records',
+                    'admin/settings'   => 'Settings'
                 ] : [
                     'user/dashboard'  => 'Dashboard',
                     'user/attendance' => 'My Attendance',

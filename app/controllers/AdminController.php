@@ -1,5 +1,5 @@
 <?php
-require_once ROOT_PATH . '/app/core/Controller.php';
+require_once 'app/core/Controller.php';
 
 class AdminController extends Controller {
 
@@ -34,6 +34,51 @@ class AdminController extends Controller {
             'title' => 'Attendance Records',
             'users' => $userModel->getAll()
         ]);
+    }
+
+    public function settings() {
+        $settingModel = $this->model('Setting');
+        $this->view('admin/settings', [
+            'title' => 'System Settings',
+            'settings' => $settingModel->getAll()
+        ]);
+    }
+
+    public function saveSettings() {
+        $this->requireAjax();
+        $settingModel = $this->model('Setting');
+
+        $workStart = $this->input('work_start_time', '09:00');
+        $workEnd   = $this->input('work_end_time', '17:00');
+        $grace     = (int)$this->input('late_grace_minutes', 0);
+        $company   = trim($this->input('company_name', ''));
+
+        // Normalize HH:MM into HH:MM:SS
+        if (preg_match('/^\d{2}:\d{2}$/', $workStart)) { $workStart .= ':00'; }
+        if (preg_match('/^\d{2}:\d{2}$/', $workEnd))   { $workEnd   .= ':00'; }
+
+        if (!preg_match('/^\d{2}:\d{2}:\d{2}$/', $workStart)) {
+            $this->json(['status' => 'error', 'message' => 'Invalid work start time format']);
+        }
+        if (!preg_match('/^\d{2}:\d{2}:\d{2}$/', $workEnd)) {
+            $this->json(['status' => 'error', 'message' => 'Invalid work end time format']);
+        }
+        if (strtotime($workEnd) <= strtotime($workStart)) {
+            $this->json(['status' => 'error', 'message' => 'End time must be after start time']);
+        }
+        if ($grace < 0 || $grace > 240) {
+            $this->json(['status' => 'error', 'message' => 'Grace period must be 0–240 minutes']);
+        }
+        if ($company === '') {
+            $this->json(['status' => 'error', 'message' => 'Company name is required']);
+        }
+
+        $settingModel->set('work_start_time', $workStart);
+        $settingModel->set('work_end_time', $workEnd);
+        $settingModel->set('late_grace_minutes', (string)$grace);
+        $settingModel->set('company_name', $company);
+
+        $this->json(['status' => 'success', 'message' => 'Settings saved']);
     }
 
     // ---- AJAX: list users ----

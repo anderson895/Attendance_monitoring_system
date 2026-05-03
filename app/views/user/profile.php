@@ -1,4 +1,4 @@
-<?php require ROOT_PATH . '/app/views/layouts/header.php'; ?>
+<?php require '../layouts/header.php'; ?>
 
 <div class="card" style="max-width: 640px;">
     <div class="card-header">
@@ -25,4 +25,4 @@
     </form>
 </div>
 
-<?php require ROOT_PATH . '/app/views/layouts/footer.php'; ?>
+<?php require '../layouts/footer.php'; ?>

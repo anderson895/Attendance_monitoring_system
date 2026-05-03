@@ -1,5 +1,5 @@
 <?php
-require_once ROOT_PATH . '/app/core/Model.php';
+require_once 'app/core/Model.php';
 
 /**
  * INHERITANCE pillar: User extends Model.

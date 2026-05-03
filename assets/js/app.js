@@ -117,7 +117,11 @@ $(document).on('click', '#btnTimeIn', function () {
     ajaxPost('user/timeIn', {})
         .done(function (res) {
             toast(res.message, res.status);
-            if (res.status === 'success') refreshTodayLog();
+            if (res.status === 'success') {
+                refreshTodayLog();
+                refreshRecentTable();
+                loadMyHistory();
+            }
         })
         .always(function () { $b.prop('disabled', false); });
 });
@@ -127,23 +131,55 @@ $(document).on('click', '#btnTimeOut', function () {
     ajaxPost('user/timeOut', {})
         .done(function (res) {
             toast(res.message, res.status);
-            if (res.status === 'success') refreshTodayLog();
+            if (res.status === 'success') {
+                refreshTodayLog();
+                refreshRecentTable();
+                loadMyHistory();
+            }
         })
         .always(function () { $b.prop('disabled', false); });
 });
+
+/* Refresh the "Recent Attendance" table on the user dashboard */
+function refreshRecentTable() {
+    var $body = $('#recentAttendanceBody');
+    if (!$body.length) return;
+    ajaxGet('user/history').done(function (res) {
+        var rows = (res.data || []).slice(0, 8);
+        var html = '';
+        if (!rows.length) {
+            html = '<tr><td colspan="4" class="text-center text-muted">No attendance records yet</td></tr>';
+        } else {
+            rows.forEach(function (r) {
+                html += '<tr>'
+                    + '<td>' + r.date + '</td>'
+                    + '<td>' + (r.time_in ? new Date(r.time_in.replace(' ', 'T')).toLocaleTimeString() : '—') + '</td>'
+                    + '<td>' + (r.time_out ? new Date(r.time_out.replace(' ', 'T')).toLocaleTimeString() : '—') + '</td>'
+                    + '<td>' + renderStatusBadge(r.status) + '</td>'
+                    + '</tr>';
+            });
+        }
+        $body.html(html);
+    });
+}
 
 function refreshTodayLog() {
     if (!$('#todayLogBox').length) return;
     ajaxGet('user/todayLog').done(function (res) {
         if (res.status !== 'success') return;
         var d = res.data;
+        var s = res.stats || {};
         var fmt = function (v) { return v ? new Date(v.replace(' ', 'T')).toLocaleTimeString() : '—'; };
         $('#todayTimeIn').text(d ? fmt(d.time_in) : '—');
         $('#todayTimeOut').text(d ? fmt(d.time_out) : '—');
         $('#todayStatus').html(d ? renderStatusBadge(d.status) : '<span class="text-muted">No record yet</span>');
-        if (d && d.time_in) $('#btnTimeIn').prop('disabled', true);
-        if (d && d.time_out) $('#btnTimeOut').prop('disabled', true);
-        if (!d || !d.time_in) $('#btnTimeOut').prop('disabled', true);
+
+        $('#statPresent').text(s.present || 0);
+        $('#statLate').text(s.late || 0);
+        $('#statAbsent').text(s.absent || 0);
+
+        $('#btnTimeIn').prop('disabled', !!(d && d.time_in));
+        $('#btnTimeOut').prop('disabled', !d || !d.time_in || !!d.time_out);
     });
 }
 function renderStatusBadge(s) {
@@ -176,6 +212,24 @@ function loadMyHistory() {
         $('#myHistoryBody').html(html);
     });
 }
+
+/* ===========================================================
+   ADMIN — SETTINGS
+   =========================================================== */
+$(document).on('submit', '#settingsForm', function (e) {
+    e.preventDefault();
+    var $btn = $(this).find('button[type=submit]').prop('disabled', true).text('Saving...');
+    ajaxPost('admin/saveSettings', $(this).serialize())
+        .done(function (res) {
+            toast(res.message, res.status);
+            if (res.status === 'success') {
+                setTimeout(function () { window.location.reload(); }, 600);
+            }
+        })
+        .always(function () {
+            $btn.prop('disabled', false).text('Save Settings');
+        });
+});
 
 /* ===========================================================
    PROFILE UPDATE

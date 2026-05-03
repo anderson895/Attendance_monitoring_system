@@ -50,6 +50,27 @@ $attendance = "CREATE TABLE IF NOT EXISTS attendance (
 if (!$conn->query($attendance)) die('Error: ' . $conn->error);
 $messages[] = "Table <b>attendance</b> ready.";
 
+$settings = "CREATE TABLE IF NOT EXISTS settings (
+    setting_key VARCHAR(64) NOT NULL PRIMARY KEY,
+    setting_value VARCHAR(255) NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+if (!$conn->query($settings)) die('Error: ' . $conn->error);
+$messages[] = "Table <b>settings</b> ready.";
+
+$defaults = [
+    'work_start_time'    => '09:00:00',
+    'work_end_time'      => '17:00:00',
+    'late_grace_minutes' => '0',
+    'company_name'       => 'My Company'
+];
+foreach ($defaults as $k => $v) {
+    $stmt = $conn->prepare("INSERT IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)");
+    $stmt->bind_param('ss', $k, $v);
+    $stmt->execute();
+}
+$messages[] = "Default settings seeded.";
+
 $check = $conn->query("SELECT id FROM users WHERE username='admin'");
 if ($check->num_rows === 0) {
     $hash = password_hash('admin123', PASSWORD_BCRYPT);

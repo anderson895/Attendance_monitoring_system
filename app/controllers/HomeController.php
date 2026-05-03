@@ -1,5 +1,5 @@
 <?php
-require_once ROOT_PATH . '/app/core/Controller.php';
+require_once 'app/core/Controller.php';
 
 class HomeController extends Controller {
     public function index() {

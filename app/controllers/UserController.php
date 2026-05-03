@@ -1,5 +1,5 @@
 <?php
-require_once ROOT_PATH . '/app/core/Controller.php';
+require_once 'app/core/Controller.php';
 
 class UserController extends Controller {
 
@@ -51,8 +51,14 @@ class UserController extends Controller {
     public function todayLog() {
         $this->requireAjax();
         $att = $this->model('Attendance');
-        $log = $att->getTodayLog((int)$_SESSION['user_id']);
-        $this->json(['status' => 'success', 'data' => $log]);
+        $userId = (int)$_SESSION['user_id'];
+        $log = $att->getTodayLog($userId);
+        $stats = $att->getStats($userId);
+        $this->json([
+            'status' => 'success',
+            'data'   => $log,
+            'stats'  => $stats
+        ]);
     }
 
     public function history() {

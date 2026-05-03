@@ -15,6 +15,7 @@ USE `attendance_monitoring_system`;
 -- Table: users
 -- ---------------------------------------------------------------------
 DROP TABLE IF EXISTS `attendance`;
+DROP TABLE IF EXISTS `settings`;
 DROP TABLE IF EXISTS `users`;
 
 CREATE TABLE `users` (
@@ -45,6 +46,21 @@ CREATE TABLE `attendance` (
         FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- Table: settings (key-value store for admin-configurable options)
+-- ---------------------------------------------------------------------
+CREATE TABLE `settings` (
+    `setting_key`   VARCHAR(64) NOT NULL PRIMARY KEY,
+    `setting_value` VARCHAR(255) NOT NULL,
+    `updated_at`    TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `settings` (`setting_key`, `setting_value`) VALUES
+('work_start_time',        '09:00:00'),
+('work_end_time',          '17:00:00'),
+('late_grace_minutes',     '0'),
+('company_name',           'My Company');
 
 -- ---------------------------------------------------------------------
 -- Seed accounts

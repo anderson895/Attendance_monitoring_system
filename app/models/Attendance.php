@@ -1,5 +1,6 @@
 <?php
-require_once ROOT_PATH . '/app/core/Model.php';
+require_once 'app/core/Model.php';
+require_once 'app/models/Setting.php';
 
 /**
  * INHERITANCE: extends Model.
@@ -63,7 +64,20 @@ class Attendance extends Model {
             return ['status' => 'error', 'message' => 'You already timed in today.'];
         }
 
-        $cutoff = strtotime($today . ' 09:00:00');
+        $settings = new Setting();
+        $workStart = $settings->get('work_start_time', defined('LATE_CUTOFF') ? LATE_CUTOFF : '09:00:00');
+        $workEnd   = $settings->get('work_end_time', '17:00:00');
+        $grace     = (int)$settings->get('late_grace_minutes', 0);
+
+        $endTs = strtotime($today . ' ' . $workEnd);
+        if (time() > $endTs) {
+            return [
+                'status' => 'error',
+                'message' => 'Attendance is already closed for today (ended at ' . date('h:i A', $endTs) . ').'
+            ];
+        }
+
+        $cutoff = strtotime($today . ' ' . $workStart) + ($grace * 60);
         $status = (time() > $cutoff) ? 'late' : 'present';
 
         if ($existing) {

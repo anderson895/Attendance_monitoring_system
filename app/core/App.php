@@ -14,14 +14,14 @@ class App {
 
         if (!empty($url[0])) {
             $candidate = ucfirst($url[0]) . 'Controller';
-            $file = ROOT_PATH . '/app/controllers/' . $candidate . '.php';
+            $file = 'app/controllers/' . $candidate . '.php';
             if (file_exists($file)) {
                 $this->controller = $candidate;
                 unset($url[0]);
             }
         }
 
-        require_once ROOT_PATH . '/app/controllers/' . $this->controller . '.php';
+        require_once 'app/controllers/' . $this->controller . '.php';
         $this->controller = new $this->controller();
 
         if (!empty($url[1])) {

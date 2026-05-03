@@ -1,5 +1,5 @@
 <?php
-require_once ROOT_PATH . '/app/models/User.php';
+require_once 'app/models/User.php';
 
 /**
  * Auth service. Encapsulates session-based authentication.

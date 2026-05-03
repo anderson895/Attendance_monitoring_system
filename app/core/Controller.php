@@ -7,7 +7,7 @@
 class Controller {
 
     protected function model($name) {
-        $path = ROOT_PATH . '/app/models/' . $name . '.php';
+        $path = 'app/models/' . $name . '.php';
         if (!file_exists($path)) {
             throw new Exception("Model {$name} not found");
         }
@@ -16,12 +16,16 @@ class Controller {
     }
 
     protected function view($view, $data = []) {
-        $path = ROOT_PATH . '/app/views/' . $view . '.php';
-        if (!file_exists($path)) {
+        $viewDir  = 'app/views/' . dirname($view);
+        $viewFile = basename($view) . '.php';
+        if (!file_exists($viewDir . '/' . $viewFile)) {
             throw new Exception("View {$view} not found");
         }
         extract($data);
-        require_once $path;
+        $oldCwd = getcwd();
+        chdir($viewDir);
+        require $viewFile;
+        chdir($oldCwd);
     }
 
     protected function json($data) {
