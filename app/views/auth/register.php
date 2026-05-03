@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register — Attendance Monitoring System</title>
+    <title id="pageTitle">Register</title>
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/style.css">
     <script>window.BASE_URL = '<?= BASE_URL ?>';</script>
 </head>
 <body>
 <div class="auth-wrapper">
     <div class="auth-card">
-        <h1>Create Account</h1>
+        <h1>Create your <span id="brandName">My Company</span> account</h1>
         <p class="subtitle">Register a new user account</p>
 
         <form id="registerForm">

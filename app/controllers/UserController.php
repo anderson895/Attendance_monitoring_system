@@ -28,11 +28,15 @@ class UserController extends Controller {
     }
 
     public function profile() {
+        $this->view('user/profile', ['title' => 'My Profile']);
+    }
+
+    public function myProfile() {
+        $this->requireAjax();
         $userModel = $this->model('User');
-        $this->view('user/profile', [
-            'title' => 'My Profile',
-            'me' => $userModel->findById($_SESSION['user_id'])
-        ]);
+        $me = $userModel->findById($_SESSION['user_id']);
+        if ($me) { unset($me['password']); }
+        $this->json(['status' => 'success', 'data' => $me]);
     }
 
     // ---- AJAX ----

@@ -8,4 +8,11 @@ class HomeController extends Controller {
         }
         $this->redirect('auth/login');
     }
+
+    public function companyName() {
+        $this->requireAjax();
+        $settingModel = $this->model('Setting');
+        $name = $settingModel->get('company_name', 'My Company');
+        $this->json(['status' => 'success', 'data' => ['company_name' => $name]]);
+    }
 }

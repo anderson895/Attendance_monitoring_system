@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($title ?? 'Attendance Monitoring System') ?></title>
+    <title id="pageTitle"><?= htmlspecialchars($title ?? 'Dashboard') ?></title>
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/style.css">
     <script>window.BASE_URL = '<?= BASE_URL ?>';</script>
 </head>
@@ -11,7 +11,7 @@
 <div class="app">
     <aside class="sidebar">
         <div class="brand">
-            ATTENDANCE
+            <span id="brandName">My Company</span>
             <small><?= ucfirst($_SESSION['role'] ?? '') ?> Panel</small>
         </div>
         <nav>

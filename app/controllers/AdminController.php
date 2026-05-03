@@ -12,16 +12,23 @@ class AdminController extends Controller {
     }
 
     public function dashboard() {
+        $this->view('admin/dashboard', ['title' => 'Admin Dashboard']);
+    }
+
+    public function dashboardStats() {
+        $this->requireAjax();
         $userModel = $this->model('User');
-        $attModel = $this->model('Attendance');
-        $data = [
-            'title' => 'Admin Dashboard',
-            'totalUsers' => $userModel->countUsers(),
-            'today' => $attModel->getTodayStats(),
-            'stats' => $attModel->getStats(),
-            'recent' => array_slice($attModel->getAllRecords(), 0, 8)
-        ];
-        $this->view('admin/dashboard', $data);
+        $attModel  = $this->model('Attendance');
+        $recent    = array_slice($attModel->getAllRecords(), 0, 8);
+        $this->json([
+            'status' => 'success',
+            'data' => [
+                'totalUsers' => $userModel->countUsers(),
+                'today'      => $attModel->getTodayStats(),
+                'stats'      => $attModel->getStats(),
+                'recent'     => $recent
+            ]
+        ]);
     }
 
     public function users() {
@@ -29,19 +36,17 @@ class AdminController extends Controller {
     }
 
     public function attendance() {
-        $userModel = $this->model('User');
-        $this->view('admin/attendance', [
-            'title' => 'Attendance Records',
-            'users' => $userModel->getAll()
-        ]);
+        $this->view('admin/attendance', ['title' => 'Attendance Records']);
     }
 
     public function settings() {
+        $this->view('admin/settings', ['title' => 'System Settings']);
+    }
+
+    public function getSettings() {
+        $this->requireAjax();
         $settingModel = $this->model('Setting');
-        $this->view('admin/settings', [
-            'title' => 'System Settings',
-            'settings' => $settingModel->getAll()
-        ]);
+        $this->json(['status' => 'success', 'data' => $settingModel->getAll()]);
     }
 
     public function saveSettings() {

@@ -37,7 +37,7 @@
 <div class="card">
     <div class="card-header">
         <h3>Recent Attendance</h3>
-        <a href="<?php echo BASE_URL; ?>user/attendance" class="btn btn-sm btn-secondary">View All</a>
+        <a href="#" id="linkViewAllMyAttendance" class="btn btn-sm btn-secondary">View All</a>
     </div>
     <div class="table-wrap">
         <table class="table">

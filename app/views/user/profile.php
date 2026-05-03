@@ -7,15 +7,15 @@
     <form id="profileForm">
         <div class="form-group">
             <label>Username</label>
-            <input type="text" class="form-control" value="<?= htmlspecialchars($me['username']) ?>" disabled>
+            <input type="text" id="profUsername" class="form-control" disabled>
         </div>
         <div class="form-group">
             <label>Full Name</label>
-            <input type="text" name="fullname" class="form-control" value="<?= htmlspecialchars($me['fullname']) ?>" required>
+            <input type="text" name="fullname" id="profFullname" class="form-control" required>
         </div>
         <div class="form-group">
             <label>Email</label>
-            <input type="email" name="email" class="form-control" value="<?= htmlspecialchars($me['email']) ?>" required>
+            <input type="email" name="email" id="profEmail" class="form-control" required>
         </div>
         <div class="form-group">
             <label>New Password (leave blank to keep current)</label>

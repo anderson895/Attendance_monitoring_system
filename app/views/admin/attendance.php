@@ -16,11 +16,8 @@
             </div>
             <div class="form-group">
                 <label>User</label>
-                <select name="user_id" class="form-control">
+                <select name="user_id" id="filterUserId" class="form-control">
                     <option value="">All users</option>
-                    <?php foreach ($users as $u): ?>
-                        <option value="<?= $u['id'] ?>"><?= htmlspecialchars($u['fullname']) ?></option>
-                    <?php endforeach; ?>
                 </select>
             </div>
             <div class="form-group">

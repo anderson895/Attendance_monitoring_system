@@ -14,40 +14,24 @@
         <div class="form-row">
             <div class="form-group">
                 <label>Work Start Time</label>
-                <input type="time"
-                       name="work_start_time"
-                       class="form-control"
-                       value="<?= htmlspecialchars(substr($settings['work_start_time'] ?? '09:00:00', 0, 5)) ?>"
-                       required>
+                <input type="time" name="work_start_time" id="fldWorkStart" class="form-control" required>
                 <small class="text-muted">e.g. 08:00 = 8:00 AM</small>
             </div>
             <div class="form-group">
                 <label>Work End Time</label>
-                <input type="time"
-                       name="work_end_time"
-                       class="form-control"
-                       value="<?= htmlspecialchars(substr($settings['work_end_time'] ?? '17:00:00', 0, 5)) ?>"
-                       required>
+                <input type="time" name="work_end_time" id="fldWorkEnd" class="form-control" required>
                 <small class="text-muted">e.g. 17:00 = 5:00 PM</small>
             </div>
             <div class="form-group">
                 <label>Late Grace Period (minutes)</label>
-                <input type="number"
-                       name="late_grace_minutes"
-                       class="form-control"
-                       value="<?= (int)($settings['late_grace_minutes'] ?? 0) ?>"
-                       min="0" max="240" required>
+                <input type="number" name="late_grace_minutes" id="fldGrace" class="form-control" min="0" max="240" required>
                 <small class="text-muted">Allowance before being marked late</small>
             </div>
         </div>
 
         <div class="form-group">
             <label>Company Name</label>
-            <input type="text"
-                   name="company_name"
-                   class="form-control"
-                   value="<?= htmlspecialchars($settings['company_name'] ?? '') ?>"
-                   required>
+            <input type="text" name="company_name" id="fldCompany" class="form-control" required>
         </div>
 
         <button type="submit" class="btn btn-primary">Save Settings</button>
@@ -61,15 +45,15 @@
     <p style="font-size: 14px; line-height: 1.7;">
         An employee is marked <span class="badge badge-late">late</span> if their
         time-in is recorded <strong>after</strong>
-        <code><?= htmlspecialchars(substr($settings['work_start_time'] ?? '09:00:00', 0, 5)) ?></code>
-        + <code><?= (int)($settings['late_grace_minutes'] ?? 0) ?></code> minutes.
+        <code id="infoStartTime">--:--</code>
+        + <code id="infoGrace">0</code> minutes.
         Otherwise they are marked <span class="badge badge-present">present</span>.
     </p>
     <p style="font-size: 14px; line-height: 1.7;">
         Official work hours:
-        <strong><?= htmlspecialchars(substr($settings['work_start_time'] ?? '09:00:00', 0, 5)) ?></strong>
+        <strong id="infoStartTime2">--:--</strong>
         &nbsp;&mdash;&nbsp;
-        <strong><?= htmlspecialchars(substr($settings['work_end_time']   ?? '17:00:00', 0, 5)) ?></strong>
+        <strong id="infoEndTime">--:--</strong>
     </p>
     <p class="text-muted" style="font-size: 13px;">
         Existing attendance records are <strong>not</strong> recomputed when you

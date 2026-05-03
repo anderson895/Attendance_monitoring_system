@@ -5,6 +5,17 @@
 // BASE_URL is injected by the layout via <script>window.BASE_URL = '...'</script>
 window.BASE_URL = window.BASE_URL || '/';
 
+/* ----------- Company name (system-wide branding) ----------- */
+window._basePageTitle = document.title;
+function loadCompanyName() {
+    ajaxGet('home/companyName').done(function (res) {
+        if (res.status !== 'success' || !res.data) return;
+        var name = res.data.company_name || 'My Company';
+        $('#brandName').text(name);
+        document.title = window._basePageTitle + ' — ' + name;
+    });
+}
+
 /* ----------- Toast helper ----------- */
 function toast(message, type) {
     type = type || 'info';
@@ -165,6 +176,7 @@ function refreshRecentTable() {
 
 function refreshTodayLog() {
     if (!$('#todayLogBox').length) return;
+    $('#linkViewAllMyAttendance').attr('href', window.BASE_URL + 'user/attendance');
     ajaxGet('user/todayLog').done(function (res) {
         if (res.status !== 'success') return;
         var d = res.data;
@@ -216,6 +228,23 @@ function loadMyHistory() {
 /* ===========================================================
    ADMIN — SETTINGS
    =========================================================== */
+function loadSettingsForm() {
+    if (!$('#settingsForm').length) return;
+    ajaxGet('admin/getSettings').done(function (res) {
+        if (res.status !== 'success') return;
+        var s = res.data || {};
+        var hhmm = function (t) { return (t || '').substring(0, 5); };
+        $('#fldWorkStart').val(hhmm(s.work_start_time || '09:00:00'));
+        $('#fldWorkEnd').val(hhmm(s.work_end_time || '17:00:00'));
+        $('#fldGrace').val(parseInt(s.late_grace_minutes || 0, 10));
+        $('#fldCompany').val(s.company_name || '');
+        $('#infoStartTime').text(hhmm(s.work_start_time || '09:00:00'));
+        $('#infoStartTime2').text(hhmm(s.work_start_time || '09:00:00'));
+        $('#infoEndTime').text(hhmm(s.work_end_time || '17:00:00'));
+        $('#infoGrace').text(parseInt(s.late_grace_minutes || 0, 10));
+    });
+}
+
 $(document).on('submit', '#settingsForm', function (e) {
     e.preventDefault();
     var $btn = $(this).find('button[type=submit]').prop('disabled', true).text('Saving...');
@@ -223,7 +252,8 @@ $(document).on('submit', '#settingsForm', function (e) {
         .done(function (res) {
             toast(res.message, res.status);
             if (res.status === 'success') {
-                setTimeout(function () { window.location.reload(); }, 600);
+                loadSettingsForm();
+                loadCompanyName();
             }
         })
         .always(function () {
@@ -232,8 +262,70 @@ $(document).on('submit', '#settingsForm', function (e) {
 });
 
 /* ===========================================================
+   ADMIN — DASHBOARD STATS
+   =========================================================== */
+function loadAdminDashboard() {
+    if (!$('#statTotalUsers').length) return;
+    $('#linkViewAllAttendance').attr('href', window.BASE_URL + 'admin/attendance');
+    ajaxGet('admin/dashboardStats').done(function (res) {
+        if (res.status !== 'success') return;
+        var d = res.data || {};
+        var t = d.today || {};
+        var s = d.stats || {};
+        $('#statTotalUsers').text(d.totalUsers || 0);
+        $('#statPresentToday').text(parseInt(t.total_present || 0, 10));
+        $('#statLateToday').text(parseInt(t.total_late || 0, 10));
+        $('#statTotalRecords').text(parseInt(s.total || 0, 10));
+
+        var rows = d.recent || [];
+        var html = '';
+        if (!rows.length) {
+            html = '<tr><td colspan="5" class="text-center text-muted">No recent activity</td></tr>';
+        } else {
+            rows.forEach(function (r) {
+                html += '<tr>'
+                    + '<td><strong>' + escapeHtml(r.fullname) + '</strong><br><small class="text-muted">@' + escapeHtml(r.username) + '</small></td>'
+                    + '<td>' + r.date + '</td>'
+                    + '<td>' + (r.time_in ? new Date(r.time_in.replace(' ', 'T')).toLocaleTimeString() : '—') + '</td>'
+                    + '<td>' + (r.time_out ? new Date(r.time_out.replace(' ', 'T')).toLocaleTimeString() : '—') + '</td>'
+                    + '<td>' + renderStatusBadge(r.status) + '</td>'
+                    + '</tr>';
+            });
+        }
+        $('#recentActivityBody').html(html);
+    });
+}
+
+/* ===========================================================
+   ADMIN — ATTENDANCE FILTER USER DROPDOWN
+   =========================================================== */
+function loadAttendanceUserFilter() {
+    if (!$('#filterUserId').length) return;
+    ajaxGet('admin/listUsers').done(function (res) {
+        if (res.status !== 'success') return;
+        var rows = res.data || [];
+        var html = '<option value="">All users</option>';
+        rows.forEach(function (u) {
+            html += '<option value="' + u.id + '">' + escapeHtml(u.fullname) + '</option>';
+        });
+        $('#filterUserId').html(html);
+    });
+}
+
+/* ===========================================================
    PROFILE UPDATE
    =========================================================== */
+function loadProfileForm() {
+    if (!$('#profileForm').length) return;
+    ajaxGet('user/myProfile').done(function (res) {
+        if (res.status !== 'success' || !res.data) return;
+        var u = res.data;
+        $('#profUsername').val(u.username || '');
+        $('#profFullname').val(u.fullname || '');
+        $('#profEmail').val(u.email || '');
+    });
+}
+
 $(document).on('submit', '#profileForm', function (e) {
     e.preventDefault();
     ajaxPost('user/updateProfile', $(this).serialize()).done(function (res) {
@@ -379,9 +471,14 @@ function escapeHtml(s) {
    INIT
    =========================================================== */
 $(function () {
+    loadCompanyName();
     tickClock();
     refreshTodayLog();
     loadMyHistory();
     loadUsers();
     loadAttendance();
+    loadAdminDashboard();
+    loadAttendanceUserFilter();
+    loadSettingsForm();
+    loadProfileForm();
 });

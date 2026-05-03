@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login — Attendance Monitoring System</title>
+    <title id="pageTitle">Login</title>
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/style.css">
     <script>window.BASE_URL = '<?= BASE_URL ?>';</script>
 </head>
 <body>
 <div class="auth-wrapper">
     <div class="auth-card">
-        <h1>Welcome Back</h1>
+        <h1>Welcome to <span id="brandName">My Company</span></h1>
         <p class="subtitle">Sign in to your account</p>
 
         <form id="loginForm">
