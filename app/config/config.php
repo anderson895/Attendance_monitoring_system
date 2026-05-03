@@ -11,7 +11,7 @@ define('DB_NAME', 'attendance_monitoring_system');
 $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
 $scriptDir = rtrim($scriptDir, '/');
 define('BASE_URL', ($scriptDir === '' ? '/' : $scriptDir . '/'));
-define('ROOT_PATH', dirname(__DIR__, 1));
+define('ROOT_PATH', dirname(__DIR__, 2));
 
 date_default_timezone_set('Asia/Manila');
 
