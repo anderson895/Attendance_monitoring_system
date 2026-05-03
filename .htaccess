@@ -1,0 +1,10 @@
+RewriteEngine On
+RewriteBase /attendance_monitoring_system/
+
+# Allow direct access to existing files and folders (assets, install.php)
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Send everything else through the front controller
+RewriteRule ^(.+)$ index.php?url=$1 [QSA,L]
